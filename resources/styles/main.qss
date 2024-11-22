@@ -1,0 +1,129 @@
+QMainWindow {
+    background-color: #f0f0f0;
+}
+
+QMessageBox {
+    background-color: #f0f0f0;
+}
+
+QMessageBox QPushButton {
+    font-size: 18px;
+    font-family: "Big Caslon";
+    color: white;
+    background-color: #cfb289;
+    border: none;
+    padding: 10px 20px;
+}
+
+QLabel {
+    font-size: 24px;
+    font-family: "Big Caslon";
+    color: black;
+}
+
+QLabel#title {
+    font-size: 48px;
+    font-weight: bold;
+    margin-top: 40px;
+}
+
+QLabel#game_over {
+    font-size: 32px;
+    font-weight: bold;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #f9f6f2;
+}
+
+QLabel#tile {
+    background-color: #cdc1b4;
+    color: #f9f6f2;
+    font-size: 24px;
+}
+
+QLabel#tile_2 {
+    background-color: #eee4da;
+    color: #776e65;
+}
+
+QLabel#tile_4 {
+    background-color: #ede0c8;
+    color: #776e65;
+}
+
+QLabel#tile_8 {
+    background-color: #f2b179;
+    color: #f9f6f2;
+}
+
+QLabel#tile_16 {
+    background-color: #f59563;
+    color: #f9f6f2;
+}
+
+QLabel#tile_32 {
+    background-color: #f67c5f;
+    color: #f9f6f2;
+}
+
+QLabel#tile_64 {
+    background-color: #f65e3b;
+    color: #f9f6f2;
+}
+
+QLabel#tile_128 {
+    background-color: #edcf72;
+    color: #f9f6f2;
+}
+
+QLabel#tile_256 {
+    background-color: #edcc61;
+    color: #f9f6f2;
+}
+
+QLabel#tile_512 {
+    background-color: #edc850;
+    color: #f9f6f2;
+}
+
+QLabel#tile_1024 {
+    background-color: #edc53f;
+    color: #f9f6f2;
+}
+
+QLabel#tile_2048 {
+    background-color: #edc22e;
+    color: #f9f6f2;
+}
+
+QPushButton {
+    font-size: 18px;
+    font-family: "Big Caslon";
+    color: white;
+    background-color: #cfb289;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+}
+
+QPushButton:hover {
+    background-color: #bfaa89;
+}
+
+QPushButton:pressed {
+    background-color: #9f8a69;
+}
+
+QPushButton#menu_button {
+    width: 200px;
+}
+
+QComboBox {
+    font-size: 18px;
+    font-family: "Big Caslon";
+    color: white;
+    background-color: #cdc1b4;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+}
+
