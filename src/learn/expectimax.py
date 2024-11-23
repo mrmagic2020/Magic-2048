@@ -124,10 +124,10 @@ class Expectimax(RLStrategy):
         :return: The evaluation score of the board.
         """
         # Use the precomputed heuristic score tables
-        score = Board.heur_score_table[(board_int >> 0) & Board.ROW_MASK] + \
-                Board.heur_score_table[(board_int >> 16) & Board.ROW_MASK] + \
-                Board.heur_score_table[(board_int >> 32) & Board.ROW_MASK] + \
-                Board.heur_score_table[(board_int >> 48) & Board.ROW_MASK]
+        score = Board.heuristic_score_table[(board_int >> 0) & Board.ROW_MASK] + \
+                Board.heuristic_score_table[(board_int >> 16) & Board.ROW_MASK] + \
+                Board.heuristic_score_table[(board_int >> 32) & Board.ROW_MASK] + \
+                Board.heuristic_score_table[(board_int >> 48) & Board.ROW_MASK]
 
         # Now add corner heuristic
         # Get the corner tile ranks

@@ -1,7 +1,6 @@
 import json
 import enum
 import random
-import math
 from pathlib import Path
 
 
@@ -29,8 +28,12 @@ class Board:
         self.place_random_tile()
         self.place_random_tile()
 
-    def load_highscore(self):
-        """Load the highscore from a file."""
+    def load_highscore(self) -> int:
+        """
+        Load the highscore from a file.
+
+        :return: The highscore.
+        """
         if not self.highscore_path.exists():
             return 0
 
@@ -41,8 +44,12 @@ class Board:
             # print(f"Error loading highscore: {e}")
             return 0
 
-    def save_highscore(self):
-        """Save the highscore to a file."""
+    def save_highscore(self) -> bool:
+        """
+        Save the highscore to a file.
+
+        :return: True if the highscore was saved successfully, False otherwise.
+        """
         curr_highscore = self.load_highscore()
         if self.score > curr_highscore:
             try:
@@ -51,9 +58,15 @@ class Board:
                     json.dump(self.score, file)
             except Exception as e:
                 print(f"Error saving highscore: {e}")
+                return False
+        return True
 
-    def save_state(self):
-        """Save the current state of the board to a temporary file."""
+    def save_state(self) -> bool:
+        """
+        Save the current state of the board to a temporary file.
+
+        :return: True if the state was saved successfully, False otherwise.
+        """
         game_state = {
             "size": self.size,
             "board": self.board,
@@ -68,9 +81,15 @@ class Board:
                 json.dump(game_state, file)
         except Exception as e:
             print(f"Error saving game state: {e}")
+            return False
+        return True
 
     def load_state(self) -> bool:
-        """Load the saved state of the board from a temporary file."""
+        """
+        Load the saved state of the board from a temporary file.
+
+        :return: True if the state was loaded successfully, False otherwise.
+        """
         if not self.state_path.exists():
             return False
 
@@ -95,7 +114,6 @@ class Board:
         except Exception as e:
             print(f"Error clearing game state: {e}")
 
-    # Helper functions to get and set tiles
     @staticmethod
     def get_index(i, j):
         """Get the bit index for position (i, j)."""
@@ -175,7 +193,11 @@ class Board:
         return valid_moves
 
     def get_empty_cells(self) -> list[tuple[int, int]]:
-        """Get the empty cells on the board."""
+        """
+        Get the empty cells on the board.
+
+        :return: A list of empty cells.
+        """
         empty_cells = []
         for i in range(4):
             for j in range(4):
@@ -184,7 +206,11 @@ class Board:
         return empty_cells
 
     def get_highest_tile(self) -> int:
-        """Get the value of the highest tile on the board."""
+        """
+        Get the value of the highest tile on the board.
+
+        :return: The value of the highest tile.
+        """
         max_rank = 0
         temp_board = self.board
         while temp_board != 0:
@@ -198,8 +224,7 @@ class Board:
         """
         Check if the game is over.
 
-        Returns:
-            bool: True if the game is over, False otherwise.
+        :return: True if the game is over, False otherwise.
         """
         if self.get_empty_cells():
             return False
@@ -221,19 +246,6 @@ class Board:
             lines.append(" ".join(line))
         return "\n".join(lines)
 
-    def __getitem__(self, key: tuple[int, int]) -> int:
-        """Get the value of the tile at the given position."""
-        rank = self.get_tile(key[0], key[1])
-        return (1 << rank) if rank != 0 else 0
-
-    def __setitem__(self, key: tuple[int, int], value: int):
-        """Set the value of the tile at the given position."""
-        if value == 0:
-            rank = 0
-        else:
-            rank = int(math.log2(value))
-        self.set_tile(key[0], key[1], rank)
-
     # Precomputed tables
     ROW_MASK = 0xFFFF
     COL_MASK = 0x000F000F000F000F
@@ -243,7 +255,7 @@ class Board:
     row_right_table = {}
     col_up_table = {}
     col_down_table = {}
-    heur_score_table = {}
+    heuristic_score_table = {}
     score_table = {}
 
     @classmethod
@@ -302,14 +314,14 @@ class Board:
                     monotonicity_right += pow(line[i], power_monotonicity) - pow(
                         line[i - 1], power_monotonicity)
 
-            heur_score = loss_penalty + \
-                         weight_empty_cells * empty + \
-                         weight_merges * merges - \
-                         weight_monotonicity * min(monotonicity_left,
-                                                   monotonicity_right) - \
-                         weight_sum_values * sum_values
+            heuristic_score = loss_penalty + \
+                              weight_empty_cells * empty + \
+                              weight_merges * merges - \
+                              weight_monotonicity * min(monotonicity_left,
+                                                        monotonicity_right) - \
+                              weight_sum_values * sum_values
 
-            cls.heur_score_table[row] = heur_score
+            cls.heuristic_score_table[row] = heuristic_score
 
             # Execute a move to the left
             results = cls.execute_row_move(line)
@@ -333,14 +345,24 @@ class Board:
                 rev_result)
 
     @staticmethod
-    def reverse_row(row):
-        """Reverse the row (16 bits)."""
+    def reverse_row(row: int) -> int:
+        """
+        Reverse the row (16 bits).
+
+        :param row: The row to reverse.
+        :return: The reversed row.
+        """
         return ((row >> 12) & 0xF) | ((row >> 4) & 0xF0) | ((row << 4) & 0xF00) | (
                 (row << 12) & 0xF000)
 
     @staticmethod
-    def unpack_col(row):
-        """Unpack a row into a column representation."""
+    def unpack_col(row: int) -> int:
+        """
+        Unpack a row into a column representation.
+
+        :param row: The row to unpack.
+        :return: The unpacked column.
+        """
         tmp = row
         return (tmp & 0xF) << 0 | \
             (tmp & 0xF0) << 12 | \
@@ -348,9 +370,14 @@ class Board:
             (tmp & 0xF000) << 36
 
     @staticmethod
-    def execute_row_move(line):
-        """Execute a move to the left on a row."""
-        result = []
+    def execute_row_move(line: list[int]) -> dict:
+        """
+        Execute a move to the left on a row.
+
+        :param line: The row to move.
+        :return: The result of the move.
+        """
+        result: list[int] = []
         score = 0
         # Step 1: Slide tiles to the left
         tiles = [tile for tile in line if tile != 0]
@@ -374,8 +401,14 @@ class Board:
         return {'result': result, 'score': score}
 
     @staticmethod
-    def execute_move(move, board_int):
-        """Execute a move in the given direction."""
+    def execute_move(move: int, board_int: int) -> int:
+        """
+        Execute a move in the given direction.
+
+        :param move: The direction of the move.
+        :param board_int: The board state.
+        :return: The new board state.
+        """
         ret = 0
         if move == 0:  # Up
             t = Board.transpose(board_int)
@@ -389,35 +422,37 @@ class Board:
             ret = Board.execute_row_move_full(board_int, Board.row_left_table)
         elif move == 3:  # Right
             ret = Board.execute_row_move_full(board_int, Board.row_right_table)
+        else:
+            raise ValueError("Invalid move")
         return ret
 
     @staticmethod
-    def execute_row_move_full(board_int, table):
-        """Execute a row move using the precomputed table."""
+    def execute_row_move_full(board_int: int, table: dict[int, int]) -> int:
+        """
+        Execute a row move using the precomputed table.
+
+        :param board_int: The board state.
+        :param table: The precomputed table.
+        :return: The new board state.
+        """
         ret = board_int
         ret ^= int(table[(board_int >> 0) & 0xFFFF]) << 0
         ret ^= int(table[(board_int >> 16) & 0xFFFF]) << 16
         ret ^= int(table[(board_int >> 32) & 0xFFFF]) << 32
         ret ^= int(table[(board_int >> 48) & 0xFFFF]) << 48
-        # self.score = self.score_board(ret)
         return ret
 
     @staticmethod
-    def execute_col_move(board, table):
-        """Execute a column move using the precomputed table."""
-        ret = 0
-        ret ^= table[(board >> 0) & 0xFFFF] << 0
-        ret ^= table[(board >> 16) & 0xFFFF] << 4
-        ret ^= table[(board >> 32) & 0xFFFF] << 8
-        ret ^= table[(board >> 48) & 0xFFFF] << 12
-        return ret
+    def transpose(board_int: int) -> int:
+        """
+        Transpose the board.
 
-    @staticmethod
-    def transpose(x):
-        """Transpose the board."""
-        a1 = x & 0xF0F00F0FF0F00F0F
-        a2 = x & 0x0000F0F00000F0F0
-        a3 = x & 0x0F0F00000F0F0000
+        :param board_int: The board state.
+        :return: The transposed board state.
+        """
+        a1 = board_int & 0xF0F00F0FF0F00F0F
+        a2 = board_int & 0x0000F0F00000F0F0
+        a3 = board_int & 0x0F0F00000F0F0000
         a = a1 | (a2 << 12) | (a3 >> 12)
         b1 = a & 0xFF00FF0000FF00FF
         b2 = a & 0x00FF00FF00000000
@@ -425,16 +460,26 @@ class Board:
         return b1 | (b2 >> 24) | (b3 << 24)
 
     @classmethod
-    def score_board(cls, board_int):
-        """Calculate the actual score of the board."""
+    def score_board(cls, board_int: int) -> int:
+        """
+        Calculate the actual score of the board.
+
+        :param board_int: The board state.
+        :return: The score of the board.
+        """
         return cls.score_table[(board_int >> 0) & cls.ROW_MASK] + \
             cls.score_table[(board_int >> 16) & cls.ROW_MASK] + \
             cls.score_table[(board_int >> 32) & cls.ROW_MASK] + \
             cls.score_table[(board_int >> 48) & cls.ROW_MASK]
 
     @staticmethod
-    def get_empty_cells_from_board(board_int) -> list[tuple[int, int]]:
-        """Get the empty cells on the board."""
+    def get_empty_cells_from_board(board_int: int) -> list[tuple[int, int]]:
+        """
+        Get the empty cells on the board.
+
+        :param board_int: The board state.
+        :return: A list of empty cells
+        """
         empty_cells = []
         for i in range(4):
             for j in range(4):
