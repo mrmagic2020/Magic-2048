@@ -19,7 +19,7 @@ class Board:
     def __init__(self, size: int = 4):
         """Initialize the board with the given size."""
         self.size: int = size
-        self.board: int = 0  # 64-bit integer representing the board
+        self.board_int: int = 0  # 64-bit integer representing the board
         self.score: int = 0
         self.won: bool = False
         self.over: bool = False
@@ -69,7 +69,7 @@ class Board:
         """
         game_state = {
             "size": self.size,
-            "board": self.board,
+            "board": self.board_int,
             "score": self.score,
             "won": self.won,
             "over": self.over
@@ -97,7 +97,7 @@ class Board:
             with open(self.state_path, "r", encoding="utf-8") as file:
                 game_state = json.load(file)
                 self.size = game_state["size"]
-                self.board = game_state["board"]
+                self.board_int = game_state["board"]
                 self.score = game_state["score"]
                 self.won = game_state["won"]
                 self.over = game_state["over"]
@@ -115,20 +115,40 @@ class Board:
             print(f"Error clearing game state: {e}")
 
     @staticmethod
-    def get_index(i, j):
-        """Get the bit index for position (i, j)."""
+    def get_index(i: int, j: int) -> int:
+        """
+        Get the bit index for position (i, j).
+
+        :param i: The row index.
+        :param j: The column index.
+        :return: The bit index.
+        """
         return 16 * i + 4 * j
 
-    def get_tile(self, i, j):
-        """Get the tile at position (i, j)."""
-        index = self.get_index(i, j)
-        return (self.board >> index) & 0xF
+    def get_tile(self, i: int, j: int, true_value=False) -> int:
+        """
+        Get the tile at position (i, j).
 
-    def set_tile(self, i, j, value):
-        """Set the tile at position (i, j)."""
+        :param i: The row index.
+        :param j: The column index.
+        :param true_value: Whether to return the true value of the tile or the exponent.
+        :return: The value of the tile.
+        """
         index = self.get_index(i, j)
-        self.board &= ~(0xF << index)  # Clear the tile
-        self.board |= (value & 0xF) << index  # Set the new value
+        value = (self.board_int >> index) & 0xF
+        return (2 ** value if value != 0 else 0) if true_value else value
+
+    def set_tile(self, i: int, j: int, value: int):
+        """
+        Set the tile at position (i, j).
+
+        :param i: The row index.
+        :param j: The column index.
+        :param value: The value of the tile.
+        """
+        index = self.get_index(i, j)
+        self.board_int &= ~(0xF << index)  # Clear the tile
+        self.board_int |= (value & 0xF) << index  # Set the new value
 
     def place_random_tile(self):
         """Place a random tile on the board."""
@@ -153,19 +173,19 @@ class Board:
         Returns:
             bool: True if the tiles were moved, False otherwise.
         """
-        previous_board = self.board
+        previous_board = self.board_int
 
         if direction == Board.Direction.UP:
-            self.board = self.execute_move(0, self.board)
+            self.board_int = self.execute_move(0, self.board_int)
         elif direction == Board.Direction.DOWN:
-            self.board = self.execute_move(1, self.board)
+            self.board_int = self.execute_move(1, self.board_int)
         elif direction == Board.Direction.LEFT:
-            self.board = self.execute_move(2, self.board)
+            self.board_int = self.execute_move(2, self.board_int)
         elif direction == Board.Direction.RIGHT:
-            self.board = self.execute_move(3, self.board)
+            self.board_int = self.execute_move(3, self.board_int)
 
-        if self.board != previous_board:
-            self.score = Board.score_board(self.board)
+        if self.board_int != previous_board:
+            self.score = Board.score_board(self.board_int)
             self.place_random_tile()
             self.save_highscore()
             return True
@@ -179,16 +199,16 @@ class Board:
         """
         valid_moves = []
         for direction in Board.Direction:
-            new_board = self.board
+            new_board = self.board_int
             if direction == Board.Direction.UP:
-                new_board = self.execute_move(0, self.board)
+                new_board = self.execute_move(0, self.board_int)
             elif direction == Board.Direction.DOWN:
-                new_board = self.execute_move(1, self.board)
+                new_board = self.execute_move(1, self.board_int)
             elif direction == Board.Direction.LEFT:
-                new_board = self.execute_move(2, self.board)
+                new_board = self.execute_move(2, self.board_int)
             elif direction == Board.Direction.RIGHT:
-                new_board = self.execute_move(3, self.board)
-            if new_board != self.board:
+                new_board = self.execute_move(3, self.board_int)
+            if new_board != self.board_int:
                 valid_moves.append(direction)
         return valid_moves
 
@@ -201,7 +221,7 @@ class Board:
         empty_cells = []
         for i in range(4):
             for j in range(4):
-                if self.get_tile(i, j) == 0:
+                if self.get_tile(i, j, true_value=True) == 0:
                     empty_cells.append((i, j))
         return empty_cells
 
@@ -212,7 +232,7 @@ class Board:
         :return: The value of the highest tile.
         """
         max_rank = 0
-        temp_board = self.board
+        temp_board = self.board_int
         while temp_board != 0:
             rank = temp_board & 0xF
             if rank > max_rank:
@@ -229,7 +249,7 @@ class Board:
         if self.get_empty_cells():
             return False
         for move in range(4):
-            if self.execute_move(move, self.board) != self.board:
+            if self.execute_move(move, self.board_int) != self.board_int:
                 return False
         self.over = True
         return True
@@ -409,7 +429,6 @@ class Board:
         :param board_int: The board state.
         :return: The new board state.
         """
-        ret = 0
         if move == 0:  # Up
             t = Board.transpose(board_int)
             t = Board.execute_row_move_full(t, Board.row_left_table)

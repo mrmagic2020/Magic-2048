@@ -277,7 +277,7 @@ class GameView(QWidget):
         """Update the board with the current state of the game."""
         for row in range(self.board.size):
             for col in range(self.board.size):
-                value = self.board[row, col]
+                value = self.board.get_tile(row, col, true_value=True)
                 tile = self.tile_widgets[row][col]
                 if value == 0:
                     tile.setText("")
@@ -337,5 +337,5 @@ class GameView(QWidget):
 
     def get_board_state(self):
         """Get the board state as a 2D list of tile values."""
-        return [[self.board[i, j] for j in range(self.board.size)] for i in
+        return [[self.board.get_tile(i, j, true_value=True) for j in range(self.board.size)] for i in
                 range(self.board.size)]

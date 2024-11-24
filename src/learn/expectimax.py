@@ -49,13 +49,13 @@ class Expectimax(RLStrategy):
             new_board = copy.deepcopy(board)
             moved = new_board.move(action)
             if moved:
-                score = self.__expectimax(new_board.board, self.depth,
+                score = self.__expectimax(new_board.board_int, self.depth,
                                           is_maximizing=False)
                 if score > best_score:
                     best_score = score
                     best_action = action
 
-        board.score = Board.score_board(board.board)
+        board.score = Board.score_board(board.board_int)
         return best_action
 
     def __expectimax(self, board_int: int, depth: int, is_maximizing: bool) -> float:
