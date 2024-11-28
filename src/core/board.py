@@ -84,6 +84,36 @@ class Board:
             return False
         return True
 
+    @staticmethod
+    def __validate_state(game_state: dict) -> bool:
+        """
+        Validate the saved state of the board.
+
+        :param game_state: The saved state of the board.
+        :return: True if the state is valid, False otherwise.
+        """
+        if not isinstance(game_state, dict):
+            return False
+        if "size" not in game_state or not isinstance(game_state["size"], int):
+            return False
+        else:
+            size = game_state["size"]
+            if size < 2:
+                return False
+        if "board" not in game_state or not isinstance(game_state["board"], int):
+            return False
+        else:
+            board = game_state["board"]
+            if board < 0:
+                return False
+        if "score" not in game_state or not isinstance(game_state["score"], int):
+            return False
+        if "won" not in game_state or not isinstance(game_state["won"], bool):
+            return False
+        if "over" not in game_state or not isinstance(game_state["over"], bool):
+            return False
+        return True
+
     def load_state(self) -> bool:
         """
         Load the saved state of the board from a temporary file.
@@ -96,6 +126,8 @@ class Board:
         try:
             with open(self.state_path, "r", encoding="utf-8") as file:
                 game_state = json.load(file)
+                if not self.__validate_state(game_state):
+                    raise ValueError("Invalid game state")
                 self.size = game_state["size"]
                 self.board_int = game_state["board"]
                 self.score = game_state["score"]
@@ -115,7 +147,7 @@ class Board:
             print(f"Error clearing game state: {e}")
 
     @staticmethod
-    def get_index(i: int, j: int) -> int:
+    def get_bit_index(i: int, j: int) -> int:
         """
         Get the bit index for position (i, j).
 
@@ -134,7 +166,7 @@ class Board:
         :param true_value: Whether to return the true value of the tile or the exponent.
         :return: The value of the tile.
         """
-        index = self.get_index(i, j)
+        index = self.get_bit_index(i, j)
         value = (self.board_int >> index) & 0xF
         return (2 ** value if value != 0 else 0) if true_value else value
 
@@ -144,9 +176,9 @@ class Board:
 
         :param i: The row index.
         :param j: The column index.
-        :param value: The value of the tile.
+        :param value: The value of the tile as an exponent.
         """
-        index = self.get_index(i, j)
+        index = self.get_bit_index(i, j)
         self.board_int &= ~(0xF << index)  # Clear the tile
         self.board_int |= (value & 0xF) << index  # Set the new value
 
@@ -502,7 +534,7 @@ class Board:
         empty_cells = []
         for i in range(4):
             for j in range(4):
-                index = Board.get_index(i, j)
+                index = Board.get_bit_index(i, j)
                 rank = (board_int >> index) & 0xF
                 if rank == 0:
                     empty_cells.append((i, j))

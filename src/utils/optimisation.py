@@ -119,7 +119,7 @@ class Expectimax(RLStrategy):
             total_value = 0
 
             for pos in empty_cells:
-                index = Board.get_index(pos[0], pos[1])
+                index = Board.get_bit_index(pos[0], pos[1])
                 # Skip if the position is not empty (should not happen)
                 if ((board_int >> index) & 0xF) != 0:
                     continue
@@ -175,7 +175,7 @@ class Expectimax(RLStrategy):
         grid = [[0] * 4 for _ in range(4)]
         for i in range(4):
             for j in range(4):
-                index = Board.get_index(i, j)
+                index = Board.get_bit_index(i, j)
                 rank = (board_int >> index) & 0xF
                 grid[i][j] = rank
         return grid
