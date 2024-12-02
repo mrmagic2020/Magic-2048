@@ -1,7 +1,7 @@
 import random
 
-from src.learn.rl_strategy import RLStrategy
-from src.core.board import Board
+from learn.rl_strategy import RLStrategy
+from core.board import Board
 
 
 class RandomStrategy(RLStrategy):

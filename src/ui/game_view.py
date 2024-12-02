@@ -1,15 +1,11 @@
-import copy
-
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QGridLayout, \
     QPushButton, QComboBox
 from PySide6.QtGui import QKeyEvent
 from PySide6.QtCore import Qt, Slot, QTimer
 
-from src.ui.training_dialog import TrainingDialog
-from src.core.board import Board
-from src.learn.rl_trainer import RLTrainer
-from src.learn.random_strategy import RandomStrategy
-from src.learn.dqn_strategy import ReplayBuffer
+from core.board import Board
+from learn.rl_trainer import RLTrainer
+from learn.random_strategy import RandomStrategy
 
 
 class GameView(QWidget):
@@ -98,7 +94,7 @@ class GameView(QWidget):
         run_button = QPushButton("Run AI")
         run_button.clicked.connect(self.start_ai)
         train_button = QPushButton("Train AI")
-        train_button.clicked.connect(self.train_ai)
+        train_button.clicked.connect(lambda: print("Train AI"))
 
         action_layout = QHBoxLayout()
         action_layout.addWidget(run_button)
@@ -145,95 +141,6 @@ class GameView(QWidget):
 
         action = self.trainer.select_action(board=self.board)
         self.simulate_move(action)
-
-    @Slot()
-    def train_ai(self):
-        """Train the AI."""
-        if not self.trainer.is_trainable:
-            print("The selected strategy is not trainable.")
-            return
-
-        self.trainer.load()
-        episodes: int = 100
-
-        # Initialize stats
-        scores = []
-        highest_score = 0
-        highest_tile = 0
-
-        # Create and show the training dialog
-        dialog = TrainingDialog(self, total_episodes=episodes)
-        dialog.show()
-
-        # Timer-based training loop to avoid freezing the UI
-        current_episode = 0
-
-        def train_step():
-            nonlocal current_episode, scores, highest_score, highest_tile
-
-            if current_episode >= episodes:
-                dialog.info_label.setText("Training complete!")
-                self.trainer.save()
-                timer.stop()
-                if hasattr(self.trainer.strategy, "update_target_network"):
-                    self.trainer.strategy.update_target_network()
-                return
-
-            # Reset the board for a new episode
-            self.board = Board()
-
-            total_reward = 0
-
-            while not self.board.is_game_over():
-                # Store the state before the action
-                state = self.get_board_state()
-                prev_board = copy.deepcopy(self.board)
-
-                action = self.trainer.select_action(self.board)
-
-                # Perform the action
-                previous_score = self.board.score
-                self.board.move(action)
-
-                # Calculate the reward as the change in score
-                reward = self.board.score - previous_score
-                total_reward += reward
-                if hasattr(self.trainer.strategy, "calculate_reward"):
-                    reward = self.trainer.strategy.calculate_reward(prev_board,
-                                                                    self.board, reward)
-
-                # Store the next state after the action
-                next_state = self.get_board_state()
-
-                # Store the experience in the replay buffer
-                if hasattr(self.trainer.strategy, "replay_buffer"):
-                    action_index = list(Board.Direction).index(action)
-                    self.trainer.strategy.replay_buffer.add(ReplayBuffer.Experience(
-                        state=state,
-                        action=action_index,
-                        reward=reward,
-                        next_state=next_state,
-                        done=self.board.is_game_over())
-                    )
-
-                # Train the model
-                self.trainer.train(self.board)
-
-            # Update stats
-            scores.append(total_reward)
-            highest_score = max(highest_score, total_reward)
-            highest_tile = max(highest_tile, self.board.get_highest_tile())
-            average_score = sum(scores) / len(scores)
-
-            # Update the dialog
-            dialog.update_progress(current_episode + 1, average_score, highest_score,
-                                   highest_tile)
-            current_episode += 1
-
-        # Start the training loop
-        timer = QTimer(self)
-        timer.timeout.connect(train_step)
-        timer.start(100)
 
     @Slot()
     def return_to_menu(self):
@@ -337,5 +244,7 @@ class GameView(QWidget):
 
     def get_board_state(self):
         """Get the board state as a 2D list of tile values."""
-        return [[self.board.get_tile(i, j, true_value=True) for j in range(self.board.size)] for i in
-                range(self.board.size)]
+        return [
+            [self.board.get_tile(i, j, true_value=True) for j in range(self.board.size)]
+            for i in
+            range(self.board.size)]

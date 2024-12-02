@@ -1,10 +1,9 @@
 import enum
 
-from src.learn.rl_strategy import RLStrategy
-from src.learn.random_strategy import RandomStrategy
-from src.learn.expectimax import Expectimax
-from src.learn.dqn_strategy import DQNStrategy
-from src.core.board import Board
+from learn.rl_strategy import RLStrategy
+from learn.random_strategy import RandomStrategy
+from learn.expectimax import Expectimax
+from core.board import Board
 
 
 class RLTrainer:
@@ -18,7 +17,6 @@ class RLTrainer:
         """Enumeration of strategies."""
         RANDOM = 0
         EXPECTIMAX = 1
-        DQN = 2
 
     def __init__(self, strategy: RLStrategy):
         self.strategy = strategy
@@ -29,8 +27,6 @@ class RLTrainer:
             self.strategy = RandomStrategy()
         elif strategy == self.Strategy.EXPECTIMAX:
             self.strategy = Expectimax()
-        elif strategy == self.Strategy.DQN:
-            self.strategy = DQNStrategy(state_size=16, action_size=4)
         else:
             raise ValueError(f"Invalid strategy: {strategy}")
 

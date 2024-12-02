@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, \
     QMenu
 from PySide6.QtCore import Qt, Slot, QKeyCombination
-from src.ui.game_view import GameView
+from ui.game_view import GameView
 
 
 class MainWindow(QMainWindow):

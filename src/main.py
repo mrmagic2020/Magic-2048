@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 from PySide6.QtWidgets import QApplication
 
-from src.ui.main_window import MainWindow
+from ui.main_window import MainWindow
 
 
 def load_stylesheet(filepath: str) -> str:

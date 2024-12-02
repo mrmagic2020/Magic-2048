@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
-from pathlib import Path
 
-from src.core.board import Board
+from core.board import Board
 
 
 class RLStrategy(ABC):
